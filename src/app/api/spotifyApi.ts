@@ -1,8 +1,9 @@
 "use server";
 
-import { SpotifyApi } from "@spotify/web-api-ts-sdk";
+import { SimplifiedArtist, SpotifyApi, Track } from "@spotify/web-api-ts-sdk";
 import { TrackResultVM } from "@/app/search/typing";
 import { DeviceVM } from "@/app/devices/typing";
+import { PlayingTrack, QueuedTrack } from "@/app/tracks-queue/typing";
 
 const sdk = () => {
   if (!process.env.SPOTIFY_ACCESS_TOKEN)
@@ -37,10 +38,6 @@ export const listDevices = async (): Promise<DeviceVM[]> => {
     }));
 };
 
-export const playSpotifyTrack = async (trackUri: string, deviceId: string) => {
-  await sdk().player.startResumePlayback(deviceId, undefined, [trackUri]);
-};
-
 export const queueSpotifyTrack = async (trackUri: string, deviceId: string) => {
   try {
     await sdk().player.addItemToPlaybackQueue(trackUri, deviceId);
@@ -49,6 +46,29 @@ export const queueSpotifyTrack = async (trackUri: string, deviceId: string) => {
   }
 };
 
-export const spotifyTrackState = async () => {
-  return sdk().player.getCurrentlyPlayingTrack();
+export const spotifyQueuedTracks = async (): Promise<QueuedTrack[]> => {
+  const queue = await sdk().player.getUsersQueue();
+  return queue.queue.map((item) => {
+    const track = item as Track;
+    return {
+      id: track.id,
+      title: track.name,
+      artist: track.artists!.map((a: SimplifiedArtist) => a.name).join(", "),
+      imageUri: track.album.images[0].url,
+      votes: 0,
+      voteStatus: "NONE",
+    };
+  });
+};
+
+export const spotifyCurrentTrack = async (): Promise<PlayingTrack | null> => {
+  const track = await sdk().player.getCurrentlyPlayingTrack();
+  const item = track.item as Track;
+  return {
+    title: track.item.name,
+    artist: item.artists.map((a) => a.name).join(", "),
+    imageUri: item.album.images[0].url,
+    progress: track.progress_ms,
+    duration: track.item.duration_ms,
+  };
 };
