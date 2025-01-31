@@ -12,7 +12,6 @@ const sdk = () => {
     process.env.SPOTIFY_CLIENT_ID!,
     JSON.parse(process.env.SPOTIFY_ACCESS_TOKEN),
   );
-  console.log("Spotify API initialized");
   return sdk;
 };
 

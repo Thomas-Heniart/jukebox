@@ -7,6 +7,8 @@ export class DependencyContainer {
     }
   > = {};
 
+  private readonly _resolved: Record<string, unknown> = {};
+
   register<T>(param: {
     id: string;
     factory: (...args: Array<never>) => T;
@@ -20,8 +22,11 @@ export class DependencyContainer {
   }
 
   resolve<T>(id: string): T {
+    if (this._resolved[id]) return this._resolved[id] as T;
     const dependency = this._dependencies[id];
     const params = dependency.inject.map(this.resolve.bind(this));
-    return dependency.factory(...(params as never[])) as T;
+    const resolved = dependency.factory(...(params as never[])) as T;
+    this._resolved[id] = resolved;
+    return resolved;
   }
 }

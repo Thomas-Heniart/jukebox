@@ -1,10 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { MouseEventHandler, useEffect, useState } from "react";
 import { PlayingTrack, QueuedTrack } from "@/app/tracks-queue/typing";
 import AppContainer from "@/app/layouts/appContainer";
-import { getCurrentTrack, queuedTracks } from "@/app/tracks-queue/actions";
+import {
+  getCurrentTrack,
+  queuedTracks,
+  voteTrack,
+} from "@/app/tracks-queue/actions";
 import { format } from "date-fns";
 
 const formatTime = (ms: number): string => {
@@ -87,8 +91,53 @@ export default function TracksQueue() {
     return "text-grey-500";
   };
 
-  //useEffect -> get queue
-  // polling
+  const onPlusClick =
+    (track: QueuedTrack, index: number): MouseEventHandler<HTMLButtonElement> =>
+    (e) => {
+      e.preventDefault();
+      if (track.voteStatus === "UP") return;
+      voteTrack({
+        trackId: track.id,
+        vote: "UP",
+      }).then(() =>
+        setQueue(
+          queue
+            .map<QueuedTrack>((t, i) => {
+              if (i != index) return t;
+              return {
+                ...t,
+                votes: t.votes + 1,
+                voteStatus: "UP",
+              };
+            })
+            .toSorted((t1, t2) => t2.votes - t1.votes),
+        ),
+      );
+    };
+
+  const onMinusClick =
+    (track: QueuedTrack, index: number): MouseEventHandler<HTMLButtonElement> =>
+    (e) => {
+      e.preventDefault();
+      if (track.voteStatus === "DOWN") return;
+      voteTrack({
+        trackId: track.id,
+        vote: "DOWN",
+      }).then(() =>
+        setQueue(
+          queue
+            .map<QueuedTrack>((t, i) => {
+              if (i != index) return t;
+              return {
+                ...t,
+                votes: t.votes - 1,
+                voteStatus: "DOWN",
+              };
+            })
+            .toSorted((t1, t2) => t2.votes - t1.votes),
+        ),
+      );
+    };
 
   return (
     <AppContainer>
@@ -113,12 +162,14 @@ export default function TracksQueue() {
             </span>
             <div className={"flex flex-col items-center justify-center"}>
               <button
+                onClick={onPlusClick(track, i)}
                 className={plusButtonColor(track) + " hover:cursor-pointer"}
               >
                 +
               </button>
               <span className={counterColor(track)}>{track.votes}</span>
               <button
+                onClick={onMinusClick(track, i)}
                 className={minusButtonColor(track) + " hover:cursor-pointer"}
               >
                 -
