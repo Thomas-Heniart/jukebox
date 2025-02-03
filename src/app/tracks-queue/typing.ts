@@ -8,6 +8,7 @@ export type QueuedTrack = {
 };
 
 export type PlayingTrack = {
+  id: string;
   title: string;
   artist: string;
   imageUri: string;
@@ -62,4 +63,12 @@ export class TrackVotes {
       };
     });
   }
+
+  remove(trackId: string) {
+    delete this._votes[trackId];
+  }
 }
+
+export type UpdatePlaylist = (
+  votes: { id: string; votes: number }[],
+) => Promise<void>;

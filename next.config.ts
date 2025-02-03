@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 import { DependencyContainer } from "@/shared-kernel/configuration/dependency-container/dependencyContainer";
 import { TrackVotes } from "@/app/tracks-queue/typing";
+import { NextSongTimer } from "@/app/tracks-queue/lib";
+import {
+  spotifyPlaylist,
+  updateSpotifyPlaylist,
+} from "@/app/api/spotify/spotifyApi";
 
 const nextConfig: NextConfig = {
   images: {
@@ -19,12 +24,26 @@ const nextConfig: NextConfig = {
     ],
   },
   serverRuntimeConfig: {
-    dependencyContainer: new DependencyContainer().register({
-      id: "votes",
-      factory: () => new TrackVotes(),
-    }),
+    dependencyContainer: new DependencyContainer()
+      .register({
+        id: "votes",
+        factory: () => new TrackVotes(),
+      })
+      .register({
+        id: "NextSongTimer",
+        factory: (trackVotes, getPlaylist, updatePlaylist) =>
+          new NextSongTimer(trackVotes, getPlaylist, updatePlaylist),
+        inject: ["votes", "getPlaylist", "updatePlaylist"],
+      })
+      .register({
+        id: "getPlaylist",
+        factory: () => spotifyPlaylist,
+      })
+      .register({
+        id: "updatePlaylist",
+        factory: () => updateSpotifyPlaylist,
+      }),
   },
-  /* config options here */
 };
 
 export default nextConfig;

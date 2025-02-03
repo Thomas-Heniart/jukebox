@@ -13,6 +13,7 @@ import {
 } from "@/app/api/spotify/spotifyApi";
 import { appContainer } from "@/app/config/config";
 import { getUserId } from "@/app/lib/auth";
+import { NextSongTimer } from "@/app/tracks-queue/lib";
 
 export const queuedTracks = async (): Promise<QueuedTrack[]> => {
   const tracks = await spotifyQueuedTracks();
@@ -27,7 +28,12 @@ export const queuedTracks = async (): Promise<QueuedTrack[]> => {
 };
 
 export const getCurrentTrack = async (): Promise<PlayingTrack | null> => {
-  return spotifyCurrentTrack();
+  const track = await spotifyCurrentTrack();
+  if (track)
+    appContainer()
+      .resolve<NextSongTimer>("NextSongTimer")
+      .prepareNextSong(track.id, track.progress, track.duration);
+  return track;
 };
 
 export const voteTrack = async ({

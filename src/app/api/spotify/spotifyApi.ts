@@ -1,10 +1,7 @@
-"use server";
-
 import { SimplifiedArtist, SpotifyApi, Track } from "@spotify/web-api-ts-sdk";
 import { TrackResultVM } from "@/app/search/typing";
 import { DeviceVM } from "@/app/devices/typing";
 import { PlayingTrack, QueuedTrack } from "@/app/tracks-queue/typing";
-import { updatePlaylistItems } from "@/app/api/spotify/lib";
 
 const sdk = () => {
   if (!process.env.SPOTIFY_ACCESS_TOKEN)
@@ -88,6 +85,7 @@ export const spotifyCurrentTrack = async (): Promise<PlayingTrack | null> => {
   const track = await sdk().player.getCurrentlyPlayingTrack();
   const item = track.item as Track;
   return {
+    id: item.id,
     title: track.item.name,
     artist: item.artists.map((a) => a.name).join(", "),
     imageUri: item.album.images[0].url,
@@ -113,8 +111,34 @@ export const updateSpotifyPlaylist = async (
 ) => {
   const track = await sdk().player.getCurrentlyPlayingTrack();
   const updatedItems = updatePlaylistItems(votes, track.item.id);
-  console.log(updatedItems);
   await sdk().playlists.updatePlaylistItems("5NHWlEuV0IHG0Nr4U82YPl", {
     uris: updatedItems.map((item) => `spotify:track:${item}`),
   });
+};
+
+const updatePlaylistItems = (
+  votes: { id: string; votes: number }[],
+  currentTrackId: string,
+): Array<string> => {
+  if (votes.length <= 2) return votes.map((track) => track.id);
+  const result = new Array<string>(votes.length);
+  const currentTrackIdx = votes.findIndex(
+    (track) => track.id === currentTrackId,
+  );
+  result[currentTrackIdx] = votes.find(
+    (track) => track.id === currentTrackId,
+  )!.id;
+  const nextTracks = votes
+    .sort((a, b) => b.votes - a.votes)
+    .filter((track) => track.id !== currentTrackId);
+  let j = 0;
+  for (let i = currentTrackIdx + 1; i < votes.length; i++) {
+    result[i] = nextTracks[j].id;
+    j++;
+  }
+  for (let i = 0; i < currentTrackIdx; i++) {
+    result[i] = nextTracks[j].id;
+    j++;
+  }
+  return result;
 };
