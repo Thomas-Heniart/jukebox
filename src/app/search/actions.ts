@@ -1,7 +1,7 @@
 "use server";
 
 import { TrackResultVM } from "@/app/search/typing";
-import { queueSpotifyTrack, searchTracks } from "@/app/api/spotifyApi";
+import { queueSpotifyTrack, searchTracks } from "@/app/api/spotify/spotifyApi";
 import { appContainer } from "@/app/config/config";
 import { redirect } from "next/navigation";
 

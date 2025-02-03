@@ -5,7 +5,12 @@ import {
   QueuedTrack,
   TrackVotes,
 } from "@/app/tracks-queue/typing";
-import { spotifyCurrentTrack, spotifyQueuedTracks } from "@/app/api/spotifyApi";
+import {
+  spotifyCurrentTrack,
+  spotifyPlaylist,
+  spotifyQueuedTracks,
+  updateSpotifyPlaylist,
+} from "@/app/api/spotify/spotifyApi";
 import { appContainer } from "@/app/config/config";
 import { getUserId } from "@/app/lib/auth";
 
@@ -35,4 +40,10 @@ export const voteTrack = async ({
   const userId = await getUserId();
   const trackVotes = appContainer().resolve<TrackVotes>("votes");
   await trackVotes.vote({ trackId, userId, vote });
+};
+
+export const doUpdateQueue = async () => {
+  const trackVotes = appContainer().resolve<TrackVotes>("votes");
+  const playlist = await spotifyPlaylist();
+  await updateSpotifyPlaylist(trackVotes.within(playlist));
 };

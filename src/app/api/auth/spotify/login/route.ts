@@ -11,6 +11,7 @@ export async function GET() {
     "playlist-read-private",
     "streaming",
     "playlist-modify-private",
+    "playlist-modify-public",
   ].join(" ");
 
   const queryParams = new URLSearchParams({

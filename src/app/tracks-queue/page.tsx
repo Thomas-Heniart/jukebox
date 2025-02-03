@@ -5,6 +5,7 @@ import React, { MouseEventHandler, useEffect, useState } from "react";
 import { PlayingTrack, QueuedTrack } from "@/app/tracks-queue/typing";
 import AppContainer from "@/app/layouts/appContainer";
 import {
+  doUpdateQueue,
   getCurrentTrack,
   queuedTracks,
   voteTrack,
@@ -139,8 +140,14 @@ export default function TracksQueue() {
       );
     };
 
+  const onRefreshClick: MouseEventHandler<HTMLButtonElement> = (e) => {
+    e.preventDefault();
+    doUpdateQueue().catch(console.error);
+  };
+
   return (
     <AppContainer>
+      <button onClick={onRefreshClick}>Test update</button>
       <h1 className="font-bold text-2xl">Tracks Queue - vote for your song</h1>
       <ol className="w-full">
         {queue.map((track, i) => (

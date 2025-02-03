@@ -1,7 +1,7 @@
 "use client";
 import React, { MouseEventHandler, useEffect, useState } from "react";
 import { DeviceVM } from "@/app/devices/typing";
-import { getDevices, selectDevice } from "@/app/devices/action";
+import { getDevices, selectDevice } from "@/app/devices/actions";
 import AppContainer from "@/app/layouts/appContainer";
 
 export default function Devices() {

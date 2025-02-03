@@ -33,14 +33,12 @@ export class TrackVotes {
   }) {
     this._votes[trackId] = this._votes[trackId] || {};
     this._votes[trackId][userId] = vote;
-    console.log("vote", this._votes);
   }
 
   public votesOf(
     trackId: string,
     userId: string,
   ): { votes: number; voteStatus: "UP" | "DOWN" | "NONE" } {
-    console.log("votes", this._votes);
     const votes = Object.values(this._votes[trackId] || {}).reduce(
       (acc, vote) => {
         return vote === "UP" ? acc + 1 : acc - 1;
@@ -52,5 +50,16 @@ export class TrackVotes {
       votes,
       voteStatus,
     };
+  }
+
+  within(playlist: string[]): Array<{ id: string; votes: number }> {
+    return playlist.map((id) => {
+      return {
+        id,
+        votes: Object.values(this._votes[id] || {}).reduce((acc, vote) => {
+          return vote === "UP" ? acc + 1 : acc - 1;
+        }, 0),
+      };
+    });
   }
 }
