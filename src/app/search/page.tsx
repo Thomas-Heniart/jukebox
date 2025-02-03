@@ -24,7 +24,7 @@ export default function Search() {
     };
 
   return (
-    <AppContainer>
+    <AppContainer currentPage={"search"}>
       <input
         value={search}
         onChange={(e) => setSearch(e.target.value)}
