@@ -2,6 +2,7 @@ import { SimplifiedArtist, SpotifyApi, Track } from "@spotify/web-api-ts-sdk";
 import { TrackResultVM } from "@/app/search/typing";
 import { DeviceVM } from "@/app/devices/typing";
 import { PlayingTrack, QueuedTrack } from "@/app/tracks-queue/typing";
+import { FakePlaylistRepository, PlaylistVM } from "@/app/playlists/typing";
 
 const sdk = () => {
   if (!process.env.SPOTIFY_ACCESS_TOKEN)
@@ -69,17 +70,32 @@ export const spotifyQueuedTracks = async (): Promise<QueuedTrack[]> => {
     }, new Array<QueuedTrack>());
 };
 
-export const spotifyPlaylist = async (): Promise<string[]> => {
-  const items = await sdk().playlists.getPlaylistItems(
-    "5NHWlEuV0IHG0Nr4U82YPl",
-    "BB",
-    undefined,
-    50,
-    0,
-  );
+export const spotifyPlaylists = async (): Promise<PlaylistVM[]> => {
+  const profile = await sdk().currentUser.profile();
+  const page = await sdk().playlists.getUsersPlaylists(profile.id);
   //@TODO handle more than 50 items
-  return items.items.map((item) => item.track.id);
+  return page.items.map((item) => ({
+    id: item.id,
+    name: item.name,
+    coverUri:
+      item.images && item.images.length
+        ? item.images[0].url
+        : "/playlist-placeholder.png",
+  }));
 };
+
+export const spotifyPlaylist =
+  (currentPlaylist: FakePlaylistRepository) => async (): Promise<string[]> => {
+    const items = await sdk().playlists.getPlaylistItems(
+      currentPlaylist.currentPlaylist!.id!,
+      "BB",
+      undefined,
+      50,
+      0,
+    );
+    //@TODO handle more than 50 items
+    return items.items.map((item) => item.track.id);
+  };
 
 export const spotifyCurrentTrack = async (): Promise<PlayingTrack | null> => {
   const track = await sdk().player.getCurrentlyPlayingTrack();
@@ -107,11 +123,12 @@ export const spotifyResumePlaylist = async (
 };
 
 export const updateSpotifyPlaylist = async (
+  playlistId: string,
   votes: Array<{ id: string; votes: number }>,
 ) => {
   const track = await sdk().player.getCurrentlyPlayingTrack();
   const updatedItems = updatePlaylistItems(votes, track.item.id);
-  await sdk().playlists.updatePlaylistItems("5NHWlEuV0IHG0Nr4U82YPl", {
+  await sdk().playlists.updatePlaylistItems(playlistId, {
     uris: updatedItems.map((item) => `spotify:track:${item}`),
   });
 };

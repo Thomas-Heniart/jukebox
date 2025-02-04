@@ -70,5 +70,6 @@ export class TrackVotes {
 }
 
 export type UpdatePlaylist = (
+  playlistId: string,
   votes: { id: string; votes: number }[],
 ) => Promise<void>;

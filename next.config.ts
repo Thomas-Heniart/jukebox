@@ -6,6 +6,7 @@ import {
   spotifyPlaylist,
   updateSpotifyPlaylist,
 } from "@/app/api/spotify/spotifyApi";
+import { FakePlaylistRepository } from "@/app/playlists/typing";
 
 const nextConfig: NextConfig = {
   images: {
@@ -21,6 +22,11 @@ const nextConfig: NextConfig = {
         hostname: "i.scdn.co",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "mosaic.scdn.co",
+        pathname: "/**",
+      },
     ],
   },
   serverRuntimeConfig: {
@@ -31,17 +37,32 @@ const nextConfig: NextConfig = {
       })
       .register({
         id: "NextSongTimer",
-        factory: (trackVotes, getPlaylist, updatePlaylist) =>
-          new NextSongTimer(trackVotes, getPlaylist, updatePlaylist),
-        inject: ["votes", "getPlaylist", "updatePlaylist"],
+        factory: (
+          trackVotes,
+          getPlaylist,
+          updatePlaylist,
+          playlistRepository,
+        ) =>
+          new NextSongTimer(
+            trackVotes,
+            getPlaylist,
+            updatePlaylist,
+            playlistRepository,
+          ),
+        inject: ["votes", "getPlaylist", "updatePlaylist", "currentPlaylist"],
       })
       .register({
         id: "getPlaylist",
-        factory: () => spotifyPlaylist,
+        factory: (currentPlaylist) => spotifyPlaylist(currentPlaylist),
+        inject: ["currentPlaylist"],
       })
       .register({
         id: "updatePlaylist",
         factory: () => updateSpotifyPlaylist,
+      })
+      .register({
+        id: "currentPlaylist",
+        factory: () => new FakePlaylistRepository(),
       }),
   },
 };
