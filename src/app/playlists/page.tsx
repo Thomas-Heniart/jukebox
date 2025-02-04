@@ -3,8 +3,8 @@
 import { MouseEventHandler, useEffect, useState } from "react";
 import AppContainer from "@/app/layouts/appContainer";
 import Image from "next/image";
-import { PlaylistVM } from "@/app/playlists/typing";
 import { getPlaylists, selectPlaylist } from "@/app/playlists/actions";
+import { PlaylistVM } from "@/jukebox-context/view-models/playlistVM";
 
 export default function Playlists() {
   const [playlists, setPlaylists] = useState<PlaylistVM[]>([]);

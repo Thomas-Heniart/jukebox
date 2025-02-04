@@ -1,8 +1,8 @@
 "use server";
 
-import { TrackResultVM } from "@/app/search/typing";
 import { jukebox } from "@/app/config/config";
 import { redirect } from "next/navigation";
+import { TrackResultVM } from "@/jukebox-context/view-models/trackResultVM";
 
 export const searchAction = async (query: string): Promise<TrackResultVM[]> => {
   return jukebox().search(query);

@@ -3,8 +3,8 @@ import React, { MouseEventHandler, useEffect, useState } from "react";
 import { useDebouncedValue } from "@/app/hooks/debounce";
 import Image from "next/image";
 import { queueTrack, searchAction } from "@/app/search/actions";
-import { TrackResultVM } from "@/app/search/typing";
 import AppContainer from "@/app/layouts/appContainer";
+import { TrackResultVM } from "@/jukebox-context/view-models/trackResultVM";
 
 export default function Search() {
   const [search, setSearch] = useState("");

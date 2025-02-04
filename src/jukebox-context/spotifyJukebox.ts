@@ -5,28 +5,33 @@ import {
   Track as SpotifyTrack,
 } from "@spotify/web-api-ts-sdk";
 import { randomUUID } from "node:crypto";
-import { DeviceVM } from "@/app/devices/typing";
-import { PlaylistVM } from "@/app/playlists/typing";
-import { CurrentTrackVM, QueuedTrackVM } from "@/app/tracks-queue/typing";
-import { TrackResultVM } from "@/app/search/typing";
+import { clearTimeout } from "node:timers";
+import { Track } from "./models/track";
+import { VoteStatus } from "./models/voteStatus";
+import { TracksQueue } from "./models/tracksQueue";
+import { TrackResultVM } from "./view-models/trackResultVM";
+import { QueuedTrackVM } from "./view-models/queuedTrackVM";
+import { CurrentTrackVM } from "./view-models/currentTrackVM";
+import { DeviceVM } from "./view-models/deviceVM";
+import { PlaylistVM } from "./view-models/playlistVM";
+import { Device } from "./models/device";
+import { Playlist } from "./models/playlist";
 
 export class SpotifyJukebox {
   private readonly _id: string = randomUUID();
   private sdk: SpotifyApi | null = null;
-  private accessToken: AccessToken | null = null;
   private device: Device | null = null;
   private currentTrack: Track | null = null;
   private tracksQueue: TracksQueue | null = null;
 
   private queueInterval: NodeJS.Timeout | null = null;
+  private reorderTracksTimeout: NodeJS.Timeout | null = null;
 
   authenticateWith(accessToken: AccessToken) {
-    this.accessToken = accessToken;
     this.sdk = SpotifyApi.withAccessToken(
       process.env.SPOTIFY_CLIENT_ID!,
       accessToken,
     );
-    //@TODO clean previous refresh interval and create a new one
   }
 
   async availableDevices(): Promise<Array<DeviceVM>> {
@@ -69,13 +74,12 @@ export class SpotifyJukebox {
       this.device!.id,
       `spotify:playlist:${playlist.id}`,
     );
-    this.refreshQueueInterval();
-    //@TODO clear previous interval and create a new one to keep track of the current track and queue
+    this.startRefreshQueueInterval();
   }
 
   queue(voterId: string): QueuedTrackVM[] {
     if (!this.tracksQueue) return [];
-    return this.tracksQueue.sortedByVotes(voterId);
+    return this.tracksQueue.sortedByVotes(voterId, this.currentTrack!.id);
   }
 
   currentTrackVM(): CurrentTrackVM {
@@ -150,15 +154,23 @@ export class SpotifyJukebox {
     );
   }
 
-  private refreshQueueInterval() {
+  private startRefreshQueueInterval() {
     if (this.queueInterval) clearInterval(this.queueInterval);
+    if (this.reorderTracksTimeout) clearTimeout(this.reorderTracksTimeout);
     this.queueInterval = setInterval(async () => {
       const tracks = await this.tracksOf(this.tracksQueue!.playlist.id);
       this.tracksQueue!.setTracks(tracks);
       const playback = await this.sdk!.player.getCurrentlyPlayingTrack();
       const track = playback.item as SpotifyTrack;
-      if (track.id === this.currentTrack!.id)
-        return this.currentTrack!.setProgress(playback.progress_ms);
+      if (track.id === this.currentTrack!.id) {
+        this.currentTrack!.setProgress(playback.progress_ms);
+        if (this.reorderTracksTimeout) clearTimeout(this.reorderTracksTimeout);
+        this.reorderTracksTimeout = setTimeout(
+          async () => await this.reorderQueue(),
+          this.currentTrack!.secondsBeforeEnd(4),
+        );
+        return;
+      }
       this.currentTrack = new Track(
         track.id,
         track.name,
@@ -167,106 +179,19 @@ export class SpotifyJukebox {
         playback.progress_ms,
         track.duration_ms,
       );
-      //@TODO timeout to update the queue
-    }, 2000);
+      this.tracksQueue!.deleteVotesOf(track.id);
+      if (this.reorderTracksTimeout) clearTimeout(this.reorderTracksTimeout);
+      this.reorderTracksTimeout = setTimeout(
+        async () => await this.reorderQueue(),
+        this.currentTrack.secondsBeforeEnd(4),
+      );
+    }, 1500);
+  }
+
+  private async reorderQueue() {
+    await this.tracksQueue!.reorder(this.sdk!, this.currentTrack!.id);
   }
 }
 
 const joinArtists = (artists: SimplifiedArtist[]): string =>
   artists.map((a) => a.name).join(", ");
-
-export class Device {
-  constructor(
-    public readonly id: string,
-    public readonly name: string,
-  ) {}
-}
-
-export class Playlist {
-  constructor(
-    public readonly id: string,
-    public readonly name: string,
-    public readonly coverUri: string,
-  ) {}
-}
-
-export class Track {
-  constructor(
-    public readonly id: string,
-    public readonly title: string,
-    public readonly artist: string,
-    public readonly imageUri: string,
-    private _progress: number,
-    public readonly duration: number,
-  ) {}
-
-  setProgress(progress: number) {
-    this._progress = progress;
-  }
-
-  get progress(): number {
-    return this._progress;
-  }
-}
-
-export type VoteStatus = "UP" | "DOWN";
-
-export class TracksQueue {
-  private readonly _votes: {
-    [trackId: Track["id"]]: {
-      [voterId: string]: VoteStatus;
-    };
-  } = {};
-
-  constructor(
-    public readonly playlist: Playlist,
-    private tracks: Track[],
-  ) {}
-
-  sortedByVotes(voterId: string): Array<QueuedTrackVM> {
-    return this.tracks
-      .map<QueuedTrackVM>((track) => ({
-        id: track.id,
-        imageUri: track.imageUri,
-        title: track.title,
-        artist: track.artist,
-        voteStatus: this.voteStatusOf(track.id, voterId),
-        votes: this.votesOf(track.id),
-      }))
-      .toSorted((a, b) => b.votes - a.votes);
-  }
-
-  vote({
-    trackId,
-    vote,
-    voterId,
-  }: {
-    trackId: string;
-    vote: VoteStatus;
-    voterId: string;
-  }) {
-    this._votes[trackId] = this._votes[trackId] || {};
-    this._votes[trackId][voterId] = vote;
-  }
-
-  addTrack({ id, title, artist, imageUri, duration }: TrackResultVM) {
-    this.tracks.push(new Track(id, title, artist, imageUri, 0, duration));
-  }
-
-  setTracks(tracks: Track[]) {
-    this.tracks = tracks;
-  }
-
-  private voteStatusOf(
-    trackId: Track["id"],
-    voterId: string,
-  ): VoteStatus | "NONE" {
-    return this._votes[trackId]?.[voterId] || "NONE";
-  }
-
-  private votesOf(trackId: Track["id"]): number {
-    return Object.values(this._votes[trackId] || {}).reduce((acc, vote) => {
-      return vote === "UP" ? acc + 1 : acc - 1;
-    }, 0);
-  }
-}

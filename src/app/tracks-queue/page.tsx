@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import React, { MouseEventHandler, useEffect, useState } from "react";
-import { CurrentTrackVM, QueuedTrackVM } from "@/app/tracks-queue/typing";
 import AppContainer from "@/app/layouts/appContainer";
 import {
   getCurrentTrack,
@@ -10,6 +9,8 @@ import {
   voteTrack,
 } from "@/app/tracks-queue/actions";
 import { format } from "date-fns";
+import { QueuedTrackVM } from "@/jukebox-context/view-models/queuedTrackVM";
+import { CurrentTrackVM } from "@/jukebox-context/view-models/currentTrackVM";
 
 const formatTime = (ms: number): string => {
   const date = new Date(ms);
@@ -61,15 +62,15 @@ export default function TracksQueue() {
   const [currentTrack, setCurrentTrack] = useState<CurrentTrackVM | null>(null);
 
   useEffect(() => {
-    queuedTracks().then(setQueue).catch(console.error);
     getCurrentTrack().then(setCurrentTrack).catch(console.error);
+    queuedTracks().then(setQueue).catch(console.error);
   }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
       getCurrentTrack().then(setCurrentTrack).catch(console.error);
       queuedTracks().then(setQueue).catch(console.error);
-    }, 10000);
+    }, 2000);
     return () => {
       clearInterval(timer);
     };

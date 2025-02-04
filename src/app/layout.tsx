@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "JukeIt",
+  title: "Jukebox",
   description: "The best jukebox you can find for your bar!",
 };
 

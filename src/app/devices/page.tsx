@@ -1,8 +1,8 @@
 "use client";
 import React, { MouseEventHandler, useEffect, useState } from "react";
-import { DeviceVM } from "@/app/devices/typing";
 import { getDevices, selectDevice } from "@/app/devices/actions";
 import AppContainer from "@/app/layouts/appContainer";
+import { DeviceVM } from "@/jukebox-context/view-models/deviceVM";
 
 export default function Devices() {
   const [devices, setDevices] = useState<DeviceVM[]>([]);
