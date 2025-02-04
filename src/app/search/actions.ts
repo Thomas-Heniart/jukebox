@@ -1,17 +1,14 @@
 "use server";
 
 import { TrackResultVM } from "@/app/search/typing";
-import { queueSpotifyTrack, searchTracks } from "@/app/api/spotify/spotifyApi";
-import { appContainer } from "@/app/config/config";
+import { jukebox } from "@/app/config/config";
 import { redirect } from "next/navigation";
 
 export const searchAction = async (query: string): Promise<TrackResultVM[]> => {
-  if (!query) return [];
-  return searchTracks(query);
+  return jukebox().search(query);
 };
 
-export const queueTrack = async (uri: string) => {
-  const deviceId = appContainer().resolve<string>("deviceId");
-  await queueSpotifyTrack(uri, deviceId);
+export const queueTrack = async (track: TrackResultVM) => {
+  await jukebox().addTrackToQueue(track);
   redirect("/tracks-queue");
 };

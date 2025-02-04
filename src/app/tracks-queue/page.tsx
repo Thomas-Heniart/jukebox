@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import React, { MouseEventHandler, useEffect, useState } from "react";
-import { PlayingTrack, QueuedTrack } from "@/app/tracks-queue/typing";
+import { CurrentTrackVM, QueuedTrackVM } from "@/app/tracks-queue/typing";
 import AppContainer from "@/app/layouts/appContainer";
 import {
   getCurrentTrack,
@@ -16,7 +16,7 @@ const formatTime = (ms: number): string => {
   return ms >= 3600000 ? format(date, "HH:mm:ss") : format(date, "mm:ss");
 };
 
-const CurrentTrackFooter = ({ track }: { track: PlayingTrack }) => {
+const CurrentTrackFooter = ({ track }: { track: CurrentTrackVM }) => {
   const [progress, setProgress] = useState(track.progress);
 
   useEffect(() => {
@@ -57,8 +57,8 @@ const CurrentTrackFooter = ({ track }: { track: PlayingTrack }) => {
 };
 
 export default function TracksQueue() {
-  const [queue, setQueue] = useState<QueuedTrack[]>([]);
-  const [currentTrack, setCurrentTrack] = useState<PlayingTrack | null>(null);
+  const [queue, setQueue] = useState<QueuedTrackVM[]>([]);
+  const [currentTrack, setCurrentTrack] = useState<CurrentTrackVM | null>(null);
 
   useEffect(() => {
     queuedTracks().then(setQueue).catch(console.error);
@@ -75,24 +75,27 @@ export default function TracksQueue() {
     };
   }, []);
 
-  const plusButtonColor = (track: QueuedTrack) => {
+  const plusButtonColor = (track: QueuedTrackVM) => {
     if (track.voteStatus === "UP") return "text-green-500";
     return "text-grey-500";
   };
 
-  const counterColor = (track: QueuedTrack) => {
+  const counterColor = (track: QueuedTrackVM) => {
     if (track.voteStatus === "UP") return "text-green-500";
     if (track.voteStatus === "DOWN") return "text-red-500";
     return "text-grey-500";
   };
 
-  const minusButtonColor = (track: QueuedTrack) => {
+  const minusButtonColor = (track: QueuedTrackVM) => {
     if (track.voteStatus === "DOWN") return "text-red-500";
     return "text-grey-500";
   };
 
   const onPlusClick =
-    (track: QueuedTrack, index: number): MouseEventHandler<HTMLButtonElement> =>
+    (
+      track: QueuedTrackVM,
+      index: number,
+    ): MouseEventHandler<HTMLButtonElement> =>
     (e) => {
       e.preventDefault();
       if (track.voteStatus === "UP") return;
@@ -102,7 +105,7 @@ export default function TracksQueue() {
       }).then(() =>
         setQueue(
           queue
-            .map<QueuedTrack>((t, i) => {
+            .map<QueuedTrackVM>((t, i) => {
               if (i != index) return t;
               return {
                 ...t,
@@ -116,7 +119,10 @@ export default function TracksQueue() {
     };
 
   const onMinusClick =
-    (track: QueuedTrack, index: number): MouseEventHandler<HTMLButtonElement> =>
+    (
+      track: QueuedTrackVM,
+      index: number,
+    ): MouseEventHandler<HTMLButtonElement> =>
     (e) => {
       e.preventDefault();
       if (track.voteStatus === "DOWN") return;
@@ -126,7 +132,7 @@ export default function TracksQueue() {
       }).then(() =>
         setQueue(
           queue
-            .map<QueuedTrack>((t, i) => {
+            .map<QueuedTrackVM>((t, i) => {
               if (i != index) return t;
               return {
                 ...t,

@@ -12,10 +12,10 @@ export default function Devices() {
   }, []);
 
   const onClick =
-    (deviceId: string): MouseEventHandler<HTMLLIElement> =>
+    (deviceId: string, name: string): MouseEventHandler<HTMLLIElement> =>
     (e) => {
       e.preventDefault();
-      selectDevice(deviceId).catch(console.error);
+      selectDevice(deviceId, name).catch(console.error);
     };
 
   return (
@@ -24,7 +24,7 @@ export default function Devices() {
         {devices.map((device) => (
           <li
             key={device.id}
-            onClick={onClick(device.id)}
+            onClick={onClick(device.id, device.name)}
             className={
               "grid grid-cols-[100px_1fr] gap-4 items-center m-2 hover:cursor-pointer hover:bg-gray-600 transition-colors rounded"
             }

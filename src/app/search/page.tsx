@@ -17,10 +17,10 @@ export default function Search() {
   }, [debouncedSearch]);
 
   const onClick =
-    (trackUri: string): MouseEventHandler<HTMLLIElement> =>
+    (track: TrackResultVM): MouseEventHandler<HTMLLIElement> =>
     (e) => {
       e.preventDefault();
-      queueTrack(trackUri).catch(console.error);
+      queueTrack(track).catch(console.error);
     };
 
   return (
@@ -38,7 +38,7 @@ export default function Search() {
         {tracks.map((track) => (
           <li
             key={track.id}
-            onClick={onClick(track.uri)}
+            onClick={onClick(track)}
             className={
               "grid grid-cols-[100px_1fr] gap-4 items-center m-2 hover:cursor-pointer hover:bg-gray-600 transition-colors rounded"
             }

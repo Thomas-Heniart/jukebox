@@ -1,7 +1,7 @@
 import { SimplifiedArtist, SpotifyApi, Track } from "@spotify/web-api-ts-sdk";
 import { TrackResultVM } from "@/app/search/typing";
 import { DeviceVM } from "@/app/devices/typing";
-import { PlayingTrack, QueuedTrack } from "@/app/tracks-queue/typing";
+import { CurrentTrackVM, QueuedTrackVM } from "@/app/tracks-queue/typing";
 import { FakePlaylistRepository, PlaylistVM } from "@/app/playlists/typing";
 
 const sdk = () => {
@@ -17,10 +17,10 @@ export const searchTracks = async (query: string): Promise<TrackResultVM[]> => {
   const items = await sdk().search(query, ["track"]);
   return items.tracks?.items.map((item) => ({
     id: item.id,
-    uri: item.uri,
     title: item.name,
     artist: item.artists.map((artist) => artist.name).join(", "),
     imageUri: item.album.images[0].url,
+    duration: item.duration_ms,
   }));
 };
 
@@ -35,7 +35,7 @@ export const listDevices = async (): Promise<DeviceVM[]> => {
     }));
 };
 
-export const queueSpotifyTrack = async (trackUri: string, deviceId: string) => {
+export const queueSpotifyTrack = async (trackUri: string) => {
   try {
     await sdk().playlists.addItemsToPlaylist("5NHWlEuV0IHG0Nr4U82YPl", [
       trackUri,
@@ -45,11 +45,11 @@ export const queueSpotifyTrack = async (trackUri: string, deviceId: string) => {
   }
 };
 
-export const spotifyQueuedTracks = async (): Promise<QueuedTrack[]> => {
+export const spotifyQueuedTracks = async (): Promise<QueuedTrackVM[]> => {
   const currentTrack = await sdk().player.getCurrentlyPlayingTrack();
   const queue = await sdk().player.getUsersQueue();
   return queue.queue
-    .map<QueuedTrack>((item) => {
+    .map<QueuedTrackVM>((item) => {
       const track = item as Track;
       return {
         id: track.id,
@@ -67,7 +67,7 @@ export const spotifyQueuedTracks = async (): Promise<QueuedTrack[]> => {
       )
         return acc;
       return [...acc, track];
-    }, new Array<QueuedTrack>());
+    }, new Array<QueuedTrackVM>());
 };
 
 export const spotifyPlaylists = async (): Promise<PlaylistVM[]> => {
@@ -97,7 +97,7 @@ export const spotifyPlaylist =
     return items.items.map((item) => item.track.id);
   };
 
-export const spotifyCurrentTrack = async (): Promise<PlayingTrack | null> => {
+export const spotifyCurrentTrack = async (): Promise<CurrentTrackVM | null> => {
   const track = await sdk().player.getCurrentlyPlayingTrack();
   const item = track.item as Track;
   return {

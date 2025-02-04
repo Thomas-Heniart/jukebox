@@ -1,4 +1,4 @@
-export type QueuedTrack = {
+export type QueuedTrackVM = {
   id: string;
   title: string;
   artist: string;
@@ -7,7 +7,7 @@ export type QueuedTrack = {
   voteStatus: "UP" | "DOWN" | "NONE";
 };
 
-export type PlayingTrack = {
+export type CurrentTrackVM = {
   id: string;
   title: string;
   artist: string;

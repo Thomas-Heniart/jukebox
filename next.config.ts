@@ -7,6 +7,7 @@ import {
   updateSpotifyPlaylist,
 } from "@/app/api/spotify/spotifyApi";
 import { FakePlaylistRepository } from "@/app/playlists/typing";
+import { SpotifyJukebox } from "@/jukebox-context/spotifyJukebox";
 
 const nextConfig: NextConfig = {
   images: {
@@ -63,6 +64,10 @@ const nextConfig: NextConfig = {
       .register({
         id: "currentPlaylist",
         factory: () => new FakePlaylistRepository(),
+      })
+      .register({
+        id: "jukebox",
+        factory: () => new SpotifyJukebox(),
       }),
   },
 };

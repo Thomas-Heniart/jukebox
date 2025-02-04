@@ -1,17 +1,17 @@
 "use server";
 
-import { listDevices } from "@/app/api/spotify/spotifyApi";
 import { redirect } from "next/navigation";
-import { appContainer } from "@/app/config/config";
+import { appContainer, jukebox } from "@/app/config/config";
 
 export const getDevices = async () => {
-  return listDevices();
+  return jukebox().availableDevices();
 };
 
-export const selectDevice = async (id: string) => {
+export const selectDevice = async (id: string, name: string) => {
   appContainer().register({
     id: "deviceId",
     factory: () => id,
   });
+  jukebox().chooseDevice({ id, name });
   return redirect("/playlists");
 };
