@@ -17,7 +17,7 @@ export async function GET() {
   const queryParams = new URLSearchParams({
     response_type: "code",
     client_id: process.env.SPOTIFY_CLIENT_ID!,
-    redirect_uri: process.env.SPOTIFY_REDIRECT_URI!,
+    redirect_uri: encodeURIComponent(process.env.SPOTIFY_REDIRECT_URI!),
     scope,
   });
 
