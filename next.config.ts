@@ -1,6 +1,4 @@
 import type { NextConfig } from "next";
-import { DependencyContainer } from "@/shared-kernel/configuration/dependency-container/dependencyContainer";
-import { SpotifyJukebox } from "@/jukebox-context/spotifyJukebox";
 
 const nextConfig: NextConfig = {
   images: {
@@ -22,12 +20,6 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
-  },
-  serverRuntimeConfig: {
-    dependencyContainer: new DependencyContainer().register({
-      id: "jukebox",
-      factory: () => new SpotifyJukebox(),
-    }),
   },
 };
 

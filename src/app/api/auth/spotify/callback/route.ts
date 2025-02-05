@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import axios from "axios";
 import { AccessToken } from "@spotify/web-api-ts-sdk";
-import { jukebox } from "@/app/config/config";
+import { jukebox } from "@/shared-kernel/configuration/di";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -32,15 +32,10 @@ export async function GET(request: Request) {
         },
       },
     );
-
     jukebox().authenticateWith(response.data);
 
     process.env.SPOTIFY_ACCESS_TOKEN = JSON.stringify(response.data);
     return NextResponse.redirect(new URL("/devices", request.url));
-
-    // const {access_token, refresh_token, expires_in} = response.data;
-    // Optional: Save tokens in a cookie, session, or database
-    // return NextResponse.json({access_token, refresh_token, expires_in});
   } catch (error) {
     console.error(error);
     return NextResponse.json(

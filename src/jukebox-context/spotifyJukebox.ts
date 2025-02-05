@@ -4,21 +4,20 @@ import {
   SpotifyApi,
   Track as SpotifyTrack,
 } from "@spotify/web-api-ts-sdk";
-import { randomUUID } from "node:crypto";
-import { clearTimeout } from "node:timers";
-import { Track } from "./models/track";
-import { VoteStatus } from "./models/voteStatus";
-import { TracksQueue } from "./models/tracksQueue";
-import { TrackResultVM } from "./view-models/trackResultVM";
-import { QueuedTrackVM } from "./view-models/queuedTrackVM";
-import { CurrentTrackVM } from "./view-models/currentTrackVM";
-import { DeviceVM } from "./view-models/deviceVM";
-import { PlaylistVM } from "./view-models/playlistVM";
-import { Device } from "./models/device";
-import { Playlist } from "./models/playlist";
+import { Device } from "@/jukebox-context/models/device";
+import { Track } from "@/jukebox-context/models/track";
+import { TracksQueue } from "@/jukebox-context/models/tracksQueue";
+import { PlaylistVM } from "@/jukebox-context/view-models/playlistVM";
+import { DeviceVM } from "@/jukebox-context/view-models/deviceVM";
+import { Playlist } from "@/jukebox-context/models/playlist";
+import { QueuedTrackVM } from "@/jukebox-context/view-models/queuedTrackVM";
+import { CurrentTrackVM } from "@/jukebox-context/view-models/currentTrackVM";
+import { VoteStatus } from "@/jukebox-context/models/voteStatus";
+import { TrackResultVM } from "@/jukebox-context/view-models/trackResultVM";
+import { v4 } from "uuid";
 
 export class SpotifyJukebox {
-  private readonly _id: string = randomUUID();
+  private readonly _id: string = v4();
   private sdk: SpotifyApi | null = null;
   private device: Device | null = null;
   private currentTrack: Track | null = null;

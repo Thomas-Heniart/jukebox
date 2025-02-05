@@ -1,6 +1,6 @@
 "use server";
 
-import { jukebox } from "@/app/config/config";
+import { jukebox } from "@/shared-kernel/configuration/di";
 import { redirect } from "next/navigation";
 import { PlaylistVM } from "@/jukebox-context/view-models/playlistVM";
 

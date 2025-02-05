@@ -1,6 +1,6 @@
 "use server";
 
-import { jukebox } from "@/app/config/config";
+import { jukebox } from "@/shared-kernel/configuration/di";
 import { getUserId } from "@/app/lib/auth";
 import { QueuedTrackVM } from "@/jukebox-context/view-models/queuedTrackVM";
 import { CurrentTrackVM } from "@/jukebox-context/view-models/currentTrackVM";

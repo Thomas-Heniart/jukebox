@@ -1,0 +1,13 @@
+services:
+  app:
+    build:
+      context: ./
+      target: production
+      dockerfile: Dockerfile
+    volumes:
+      - .env:/app/.env
+    #      - .:/app
+    #      - /app/node_modules
+    #      - /app/.next
+    ports:
+      - "3000:3000"
