@@ -1,0 +1,39 @@
+name: Deploy to Private Server
+
+on:
+  workflow_run:
+    workflows: ["Docker Build and Push"]
+    types:
+      - completed
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Deploy to private server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            # Login to GitHub Container Registry
+            echo ${{ secrets.REGISTRY_TOKEN }} | docker login ghcr.io -u thomas-heniart --password-stdin
+            
+            # Pull the latest image
+            docker pull ghcr.io/thomas-heniart/jukebox:${{ github.sha }}
+            
+            # Stop the existing container (if running)
+            docker stop jukebox || true
+            docker rm jukebox || true
+            
+            # Start the new container with .env file mounted
+            docker run -d \
+              --name jukebox \
+              --restart unless-stopped \
+              -p 3001:3000 \
+              -v /home/ubuntu/jukebox/.env:/app/.env:ro \
+              ghcr.io/thomas-heniart/jukebox:${{ github.sha }}

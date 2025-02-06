@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import axios from "axios";
 import { AccessToken } from "@spotify/web-api-ts-sdk";
 import { jukebox } from "@/shared-kernel/configuration/di";
+import { redirectTo } from "@/app/lib/redirectTo";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -34,8 +35,7 @@ export async function GET(request: Request) {
     );
     jukebox().authenticateWith(response.data);
 
-    process.env.SPOTIFY_ACCESS_TOKEN = JSON.stringify(response.data);
-    return NextResponse.redirect(new URL("/devices", request.url));
+    return redirectTo("/devices", request);
   } catch (error) {
     console.error(error);
     return NextResponse.json(
