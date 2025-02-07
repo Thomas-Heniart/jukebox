@@ -3,6 +3,17 @@ import React, { MouseEventHandler, useEffect, useState } from "react";
 import { getDevices, selectDevice } from "@/app/devices/actions";
 import AppContainer from "@/app/layouts/appContainer";
 import { DeviceVM } from "@/jukebox-context/view-models/deviceVM";
+import Image from "next/image";
+
+const paths: Record<string, string> = {
+  Smartphone: "/smartphone.png",
+  Computer: "/computer.png",
+} as const;
+
+const deviceImage = (type: DeviceVM["type"]) => {
+  const path = paths[type] || "/playlist-placeholder.png";
+  return <Image src={path} alt={type} width={98} height={98} />;
+};
 
 export default function Devices() {
   const [devices, setDevices] = useState<DeviceVM[]>([]);
@@ -19,17 +30,19 @@ export default function Devices() {
     };
 
   return (
-    <AppContainer>
-      <ol>
+    <AppContainer withHeader={false}>
+      <h1 className={"font-extrabold text-2xl"}>Select your device</h1>
+      <ol className={"grid grid-cols-1 gap-4"}>
         {devices.map((device) => (
           <li
             key={device.id}
             onClick={onClick(device.id, device.name)}
             className={
-              "grid grid-cols-[100px_1fr] gap-4 items-center m-2 hover:cursor-pointer hover:bg-gray-600 transition-colors rounded"
+              "flex gap-4 cursor-pointer hover:bg-gray-600 transition-colors rounded items-center p-2"
             }
           >
-            {device.name} - {device.type}
+            {deviceImage(device.type)}
+            <span>{device.name}</span>
           </li>
         ))}
       </ol>

@@ -31,6 +31,7 @@ export class SpotifyJukebox {
       process.env.SPOTIFY_CLIENT_ID!,
       accessToken,
     );
+    this.startRefreshTokenTimeout(accessToken);
   }
 
   async availableDevices(): Promise<Array<DeviceVM>> {
@@ -189,6 +190,16 @@ export class SpotifyJukebox {
 
   private async reorderQueue() {
     await this.tracksQueue!.reorder(this.sdk!, this.currentTrack!.id);
+  }
+
+  private startRefreshTokenTimeout(accessToken: AccessToken) {
+    setTimeout(
+      async () => {
+        const { accessToken } = await this.sdk!.authenticate();
+        this.authenticateWith(accessToken);
+      },
+      accessToken.expires_in * 1000 - 60000,
+    );
   }
 }
 
