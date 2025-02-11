@@ -74,7 +74,11 @@ export class SpotifyJukebox {
       this.device!.id,
       `spotify:playlist:${playlist.id}`,
     );
-    await this.sdk!.player.setRepeatMode("context", this.device!.id);
+    try {
+      await this.sdk!.player.setRepeatMode("context", this.device!.id);
+    } catch (error) {
+      console.error(error);
+    }
     this.startRefreshQueueInterval();
   }
 

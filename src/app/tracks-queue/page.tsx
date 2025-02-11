@@ -110,7 +110,7 @@ export default function TracksQueue() {
               if (i != index) return t;
               return {
                 ...t,
-                votes: t.votes + 1,
+                votes: t.votes + (t.voteStatus === "DOWN" ? 2 : 1),
                 voteStatus: "UP",
               };
             })
@@ -137,7 +137,7 @@ export default function TracksQueue() {
               if (i != index) return t;
               return {
                 ...t,
-                votes: t.votes - 1,
+                votes: t.votes - (t.voteStatus === "UP" ? 2 : 1),
                 voteStatus: "DOWN",
               };
             })
