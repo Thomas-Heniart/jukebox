@@ -74,6 +74,7 @@ export class SpotifyJukebox {
       this.device!.id,
       `spotify:playlist:${playlist.id}`,
     );
+    await this.sdk!.player.setRepeatMode("context", this.device!.id);
     this.startRefreshQueueInterval();
   }
 
