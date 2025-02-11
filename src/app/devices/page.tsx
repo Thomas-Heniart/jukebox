@@ -4,6 +4,7 @@ import { getDevices, selectDevice } from "@/app/devices/actions";
 import AppContainer from "@/app/layouts/appContainer";
 import { DeviceVM } from "@/jukebox-context/view-models/deviceVM";
 import Image from "next/image";
+import { Loader } from "@/app/components/loader";
 
 const paths: Record<string, string> = {
   Smartphone: "/smartphone.png",
@@ -17,9 +18,22 @@ const deviceImage = (type: DeviceVM["type"]) => {
 
 export default function Devices() {
   const [devices, setDevices] = useState<DeviceVM[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const retrieveDevices = async () => {
+    setIsLoading(true);
+    try {
+      const devices = await getDevices();
+      setDevices(devices);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    getDevices().then(setDevices).catch(console.error);
+    retrieveDevices().catch(console.error);
   }, []);
 
   const onClick =
@@ -28,6 +42,29 @@ export default function Devices() {
       e.preventDefault();
       selectDevice(deviceId, name).catch(console.error);
     };
+
+  if (isLoading)
+    return (
+      <AppContainer withHeader={false}>
+        <Loader />
+      </AppContainer>
+    );
+
+  if (!devices.length)
+    return (
+      <AppContainer withHeader={false}>
+        <h1 className={"font-extrabold text-2xl"}>No device available</h1>
+        <h2 className={"font-bold text-xl"}>
+          Try to start playing a song on your device
+        </h2>
+        <button
+          className={"rounded-2xl bg-blue-950 text-white p-2"}
+          onClick={() => retrieveDevices()}
+        >
+          Try again
+        </button>
+      </AppContainer>
+    );
 
   return (
     <AppContainer withHeader={false}>

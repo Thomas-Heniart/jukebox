@@ -1,27 +1,70 @@
 "use client";
 
-import { MouseEventHandler, useEffect, useState } from "react";
+import React, { MouseEventHandler, useEffect, useState } from "react";
 import AppContainer from "@/app/layouts/appContainer";
 import Image from "next/image";
 import { getPlaylists, selectPlaylist } from "@/app/playlists/actions";
 import { PlaylistVM } from "@/jukebox-context/view-models/playlistVM";
+import { Loader } from "@/app/components/loader";
 
 export default function Playlists() {
   const [playlists, setPlaylists] = useState<PlaylistVM[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const retrievePlaylists = async () => {
+    setIsLoading(true);
+    try {
+      const playlists = await getPlaylists();
+      setPlaylists(playlists);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    getPlaylists().then(setPlaylists);
+    retrievePlaylists().catch(console.error);
   }, []);
 
   const onClick =
     (playlist: PlaylistVM): MouseEventHandler<HTMLLIElement> =>
     (e) => {
       e.preventDefault();
-      selectPlaylist(playlist).catch(console.error);
+      selectPlaylist(playlist).catch((e) => {
+        console.error(e);
+        setPlaylists([]);
+      });
     };
 
+  if (isLoading)
+    return (
+      <AppContainer withHeader={false}>
+        <Loader />
+      </AppContainer>
+    );
+
+  if (!playlists.length)
+    return (
+      <AppContainer withHeader={false}>
+        <h1 className={"font-extrabold text-2xl"}>No playlist available</h1>
+        <h2 className={"font-bold text-xl"}>
+          Try to start playing a song on your device
+        </h2>
+        <button
+          className={"rounded-2xl bg-blue-950 text-white p-2"}
+          onClick={() => retrievePlaylists()}
+        >
+          Try again
+        </button>
+      </AppContainer>
+    );
+
   return (
-    <AppContainer>
+    <AppContainer withHeader={false}>
+      <h1 className={"font-extrabold text-2xl"}>
+        Select a playlist to start with
+      </h1>
       <ol className={"grid grid-cols-1 gap-4"}>
         {playlists.map((playlist) => (
           <li

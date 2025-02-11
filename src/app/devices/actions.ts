@@ -1,9 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { jukebox } from "@/shared-kernel/configuration/di";
+import { appContainer, jukebox } from "@/shared-kernel/configuration/di";
 
 export const getDevices = async () => {
+  appContainer().resolve<() => void>("test")();
   return jukebox().availableDevices();
 };
 
