@@ -33,6 +33,7 @@ export async function GET(request: Request) {
         },
       },
     );
+    jukebox().clearRefreshTokenTimeout();
     jukebox().authenticateWith(response.data);
 
     return redirectTo("/devices", request);

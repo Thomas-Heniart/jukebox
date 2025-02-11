@@ -25,6 +25,11 @@ export class SpotifyJukebox {
 
   private queueInterval: NodeJS.Timeout | null = null;
   private reorderTracksTimeout: NodeJS.Timeout | null = null;
+  private refreshTokenTimeout: NodeJS.Timeout | null = null;
+
+  clearRefreshTokenTimeout() {
+    if (this.refreshTokenTimeout) clearTimeout(this.refreshTokenTimeout);
+  }
 
   authenticateWith(accessToken: AccessToken) {
     this.sdk = SpotifyApi.withAccessToken(
@@ -198,7 +203,7 @@ export class SpotifyJukebox {
   }
 
   private startRefreshTokenTimeout(accessToken: AccessToken) {
-    setTimeout(
+    this.refreshTokenTimeout = setTimeout(
       async () => {
         const { accessToken } = await this.sdk!.authenticate();
         this.authenticateWith(accessToken);

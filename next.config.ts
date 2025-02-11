@@ -21,6 +21,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack: (config, { nextRuntime }) => {
+    if (nextRuntime !== "nodejs") {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { IgnorePlugin } = require("webpack");
+      const ignoreNodes = new IgnorePlugin({ resourceRegExp: /node:.*/ });
+      config.plugins.push(ignoreNodes);
+    }
+    return config;
+  },
 };
 
 export default nextConfig;
