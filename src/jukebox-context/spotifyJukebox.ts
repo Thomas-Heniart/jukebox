@@ -23,9 +23,11 @@ export class SpotifyJukebox {
   private currentTrack: Track | null = null;
   private tracksQueue: TracksQueue | null = null;
 
-  private queueInterval: NodeJS.Timeout | null = null;
-  private reorderTracksTimeout: NodeJS.Timeout | null = null;
+  private refreshQueueInterval: NodeJS.Timeout | null = null;
+  private nextTrackTimeout: NodeJS.Timeout | null = null;
   private refreshTokenTimeout: NodeJS.Timeout | null = null;
+
+  constructor() {}
 
   clearRefreshTokenTimeout() {
     if (this.refreshTokenTimeout) clearTimeout(this.refreshTokenTimeout);
@@ -75,10 +77,9 @@ export class SpotifyJukebox {
       tracks,
     );
     this.currentTrack = tracks[0];
-    await this.sdk!.player.startResumePlayback(
-      this.device!.id,
-      `spotify:playlist:${playlist.id}`,
-    );
+    await this.sdk!.player.startResumePlayback(this.device!.id, undefined, [
+      `spotify:track:${tracks[0].id}`,
+    ]);
     try {
       await this.sdk!.player.setRepeatMode("context", this.device!.id);
     } catch (error) {
@@ -165,20 +166,19 @@ export class SpotifyJukebox {
   }
 
   private startRefreshQueueInterval() {
-    if (this.queueInterval) clearInterval(this.queueInterval);
-    if (this.reorderTracksTimeout) clearTimeout(this.reorderTracksTimeout);
-    this.queueInterval = setInterval(async () => {
+    if (this.refreshQueueInterval) clearInterval(this.refreshQueueInterval);
+    if (this.nextTrackTimeout) clearTimeout(this.nextTrackTimeout);
+    this.refreshQueueInterval = setInterval(async () => {
       const tracks = await this.tracksOf(this.tracksQueue!.playlist.id);
       this.tracksQueue!.setTracks(tracks);
       const playback = await this.sdk!.player.getCurrentlyPlayingTrack();
       const track = playback.item as SpotifyTrack;
       if (track.id === this.currentTrack!.id) {
         this.currentTrack!.setProgress(playback.progress_ms);
-        if (this.reorderTracksTimeout) clearTimeout(this.reorderTracksTimeout);
-        this.reorderTracksTimeout = setTimeout(
-          async () => await this.reorderQueue(),
-          this.currentTrack!.secondsBeforeEnd(4),
-        );
+        if (!this.nextTrackTimeout)
+          this.nextTrackTimeout = setTimeout(async () => {
+            await this.addMostVotedTrackToQueue();
+          }, this.currentTrack!.secondsBeforeEnd(4));
         return;
       }
       this.currentTrack = new Track(
@@ -190,16 +190,19 @@ export class SpotifyJukebox {
         track.duration_ms,
       );
       this.tracksQueue!.deleteVotesOf(track.id);
-      if (this.reorderTracksTimeout) clearTimeout(this.reorderTracksTimeout);
-      this.reorderTracksTimeout = setTimeout(
-        async () => await this.reorderQueue(),
-        this.currentTrack.secondsBeforeEnd(4),
-      );
-    }, 1500);
+      if (this.nextTrackTimeout) clearTimeout(this.nextTrackTimeout);
+      this.nextTrackTimeout = setTimeout(async () => {
+        await this.addMostVotedTrackToQueue();
+      }, this.currentTrack.secondsBeforeEnd(4));
+    }, 1000);
   }
 
-  private async reorderQueue() {
-    await this.tracksQueue!.reorder(this.sdk!, this.currentTrack!.id);
+  private async addMostVotedTrackToQueue() {
+    const nextTrack = this.tracksQueue!.mostVotedTrack(this.currentTrack!.id);
+    await this.sdk!.player.addItemToPlaybackQueue(
+      `spotify:track:${nextTrack.id}`,
+      this.device!.id,
+    );
   }
 
   private startRefreshTokenTimeout(accessToken: AccessToken) {

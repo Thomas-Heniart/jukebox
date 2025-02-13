@@ -14,11 +14,9 @@
     "@spotify/web-api-ts-sdk": "^1.2.0",
     "axios": "^1.7.9",
     "date-fns": "^4.1.0",
-    "fs": "^0.0.1-security",
     "next": "15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "server-only": "^0.0.1",
     "uuid": "^11.0.5"
   },
   "devDependencies": {
