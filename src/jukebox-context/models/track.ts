@@ -6,6 +6,7 @@ export class Track {
     public readonly imageUri: string,
     private _progress: number,
     public readonly duration: number,
+    public lastPlayed: number,
   ) {}
 
   setProgress(progress: number) {
@@ -19,5 +20,9 @@ export class Track {
   secondsBeforeEnd(seconds: number) {
     const millisecondsPassed = this.duration - this._progress;
     return millisecondsPassed - seconds * 1000 || 0;
+  }
+
+  setLastPlayed(lastPlayed: number) {
+    this.lastPlayed = lastPlayed;
   }
 }

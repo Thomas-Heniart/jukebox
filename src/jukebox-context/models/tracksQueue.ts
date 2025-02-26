@@ -26,8 +26,13 @@ export class TracksQueue {
         artist: track.artist,
         voteStatus: this.voteStatusOf(track.id, voterId),
         votes: this.votesOf(track.id),
+        lastPlayed: track.lastPlayed,
       }))
-      .toSorted((a, b) => b.votes - a.votes);
+      .toSorted((a, b) => {
+        const diff = b.votes - a.votes;
+        if (diff != 0) return diff;
+        return a.lastPlayed - b.lastPlayed;
+      });
   }
 
   vote({
@@ -44,7 +49,7 @@ export class TracksQueue {
   }
 
   addTrack({ id, title, artist, imageUri, duration }: TrackResultVM) {
-    this.tracks.push(new Track(id, title, artist, imageUri, 0, duration));
+    this.tracks.push(new Track(id, title, artist, imageUri, 0, duration, 0));
   }
 
   setTracks(tracks: Track[]) {
@@ -58,7 +63,8 @@ export class TracksQueue {
       .toSorted((a, b) => {
         const voteDifference =
           this.votesOf(b.track.id) - this.votesOf(a.track.id);
-        return voteDifference !== 0 ? voteDifference : a.i - b.i;
+        if (voteDifference !== 0) return voteDifference;
+        return a.i - b.i;
       })[0].track;
   }
 

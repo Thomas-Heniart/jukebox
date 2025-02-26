@@ -5,4 +5,5 @@ export type QueuedTrackVM = {
   imageUri: string;
   votes: number;
   voteStatus: "UP" | "DOWN" | "NONE";
+  lastPlayed: number;
 };

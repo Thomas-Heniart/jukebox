@@ -16,6 +16,26 @@ import { VoteStatus } from "@/jukebox-context/models/voteStatus";
 import { TrackResultVM } from "@/jukebox-context/view-models/trackResultVM";
 import { v4 } from "uuid";
 
+export interface TrackRepository {
+  lastPlayed(trackId: string): number;
+
+  started(trackId: string): number;
+}
+
+export class InMemoryTrackRepository implements TrackRepository {
+  private readonly lastPlayedDates: { [trackId: string]: number } = {};
+
+  lastPlayed(trackId: string): number {
+    return this.lastPlayedDates[trackId] || 0;
+  }
+
+  started(trackId: string): number {
+    const now = new Date().valueOf();
+    this.lastPlayedDates[trackId] = now;
+    return now;
+  }
+}
+
 export class SpotifyJukebox {
   private readonly _id: string = v4();
   private sdk: SpotifyApi | null = null;
@@ -27,7 +47,9 @@ export class SpotifyJukebox {
   private nextTrackTimeout: NodeJS.Timeout | null = null;
   private refreshTokenTimeout: NodeJS.Timeout | null = null;
 
-  constructor() {}
+  constructor(
+    private readonly trackRepository: TrackRepository = new InMemoryTrackRepository(),
+  ) {}
 
   clearRefreshTokenTimeout() {
     if (this.refreshTokenTimeout) clearTimeout(this.refreshTokenTimeout);
@@ -76,6 +98,7 @@ export class SpotifyJukebox {
       new Playlist(playlist.id, playlist.name, playlist.coverUri),
       tracks,
     );
+    tracks[0].setLastPlayed(this.trackRepository.started(tracks[0].id));
     this.currentTrack = tracks[0];
     await this.sdk!.player.startResumePlayback(this.device!.id, undefined, [
       `spotify:track:${tracks[0].id}`,
@@ -161,6 +184,7 @@ export class SpotifyJukebox {
           item.track.album.images[0].url,
           0,
           item.track.duration_ms,
+          this.trackRepository.lastPlayed(item.track.id),
         ),
     );
   }
@@ -188,6 +212,7 @@ export class SpotifyJukebox {
         track.album.images[0].url,
         playback.progress_ms,
         track.duration_ms,
+        this.trackRepository.started(track.id),
       );
       this.tracksQueue!.deleteVotesOf(track.id);
       if (this.nextTrackTimeout) clearTimeout(this.nextTrackTimeout);
