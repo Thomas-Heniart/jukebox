@@ -20,6 +20,11 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            # Ensure the directory exists and set the correct permissions
+            mkdir -p /home/ubuntu/jukebox/database
+            chown -R 1001:1001 /home/ubuntu/jukebox/database
+            chmod -R 777 /home/ubuntu/jukebox/database
+            
             # Login to GitHub Container Registry
             echo ${{ secrets.REGISTRY_TOKEN }} | docker login ghcr.io -u thomas-heniart --password-stdin
             
@@ -34,6 +39,8 @@ jobs:
             docker run -d \
               --name jukebox \
               --restart unless-stopped \
+              --user 1001:1001 \
               -p 3001:3000 \
               -v /home/ubuntu/jukebox/.env:/app/.env:ro \
+              -v /home/ubuntu/jukebox/database:/app/database \
               ghcr.io/thomas-heniart/jukebox:${{ github.sha }}

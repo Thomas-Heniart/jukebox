@@ -14,30 +14,10 @@ import { QueuedTrackVM } from "@/jukebox-context/view-models/queuedTrackVM";
 import { CurrentTrackVM } from "@/jukebox-context/view-models/currentTrackVM";
 import { VoteStatus } from "@/jukebox-context/models/voteStatus";
 import { TrackResultVM } from "@/jukebox-context/view-models/trackResultVM";
-import { v4 } from "uuid";
-
-export interface TrackRepository {
-  lastPlayed(trackId: string): number;
-
-  started(trackId: string): number;
-}
-
-export class InMemoryTrackRepository implements TrackRepository {
-  private readonly lastPlayedDates: { [trackId: string]: number } = {};
-
-  lastPlayed(trackId: string): number {
-    return this.lastPlayedDates[trackId] || 0;
-  }
-
-  started(trackId: string): number {
-    const now = new Date().valueOf();
-    this.lastPlayedDates[trackId] = now;
-    return now;
-  }
-}
+import { TrackRepository } from "@/jukebox-context/ports/trackRepository";
+import { AccessTokenRepository } from "@/jukebox-context/ports/accessTokenRepository";
 
 export class SpotifyJukebox {
-  private readonly _id: string = v4();
   private sdk: SpotifyApi | null = null;
   private device: Device | null = null;
   private currentTrack: Track | null = null;
@@ -48,18 +28,21 @@ export class SpotifyJukebox {
   private refreshTokenTimeout: NodeJS.Timeout | null = null;
 
   constructor(
-    private readonly trackRepository: TrackRepository = new InMemoryTrackRepository(),
+    private readonly _id: string = "dreadhop",
+    private readonly trackRepository: TrackRepository,
+    private readonly _accessTokenRepository: AccessTokenRepository,
   ) {}
 
   clearRefreshTokenTimeout() {
     if (this.refreshTokenTimeout) clearTimeout(this.refreshTokenTimeout);
   }
 
-  authenticateWith(accessToken: AccessToken) {
+  async authenticateWith(accessToken: AccessToken) {
     this.sdk = SpotifyApi.withAccessToken(
       process.env.SPOTIFY_CLIENT_ID!,
       accessToken,
     );
+    await this._accessTokenRepository.persist(this._id, accessToken);
     this.startRefreshTokenTimeout(accessToken);
   }
 
@@ -234,7 +217,7 @@ export class SpotifyJukebox {
     this.refreshTokenTimeout = setTimeout(
       async () => {
         const { accessToken } = await this.sdk!.authenticate();
-        this.authenticateWith(accessToken);
+        await this.authenticateWith(accessToken);
       },
       accessToken.expires_in * 1000 - 60000,
     );

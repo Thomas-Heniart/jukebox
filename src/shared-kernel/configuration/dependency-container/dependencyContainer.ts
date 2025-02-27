@@ -11,7 +11,7 @@ export class DependencyContainer {
 
   register<T>(param: {
     id: string;
-    factory: (...args: Array<never>) => T;
+    factory: (...args: Array<never>) => T | Promise<T>;
     inject?: string[];
   }) {
     this._dependencies[param.id] = {
@@ -21,11 +21,13 @@ export class DependencyContainer {
     return this;
   }
 
-  resolve<T>(id: string): T {
+  async resolve<T>(id: string): Promise<T> {
     if (this._resolved[id]) return this._resolved[id] as T;
     const dependency = this._dependencies[id];
-    const params = dependency.inject.map(this.resolve.bind(this));
-    const resolved = dependency.factory(...(params as never[])) as T;
+    const params = await Promise.all(
+      dependency.inject.map(this.resolve.bind(this)),
+    );
+    const resolved = (await dependency.factory(...(params as never[]))) as T;
     this._resolved[id] = resolved;
     return resolved;
   }

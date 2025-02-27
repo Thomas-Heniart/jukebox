@@ -8,16 +8,16 @@ describe("DependencyContainer", () => {
     container = new DependencyContainer();
   });
 
-  it("should be able to resolve a dependency", () => {
+  it("should be able to resolve a dependency", async () => {
     container.register({
       id: "foo",
       factory: () => "bar",
     });
 
-    expect(container.resolve("foo")).toEqual("bar");
+    expect(await container.resolve("foo")).toEqual("bar");
   });
 
-  it("should be able to resolve a dependency with injection", () => {
+  it("should be able to resolve a dependency with injection", async () => {
     container
       .register({
         id: "foo",
@@ -29,6 +29,6 @@ describe("DependencyContainer", () => {
         factory: () => "bar",
       });
 
-    expect(container.resolve("foo")).toEqual("bar");
+    expect(await container.resolve("foo")).toEqual("bar");
   });
 });

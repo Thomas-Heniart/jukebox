@@ -25,15 +25,19 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  webpack: (config, { nextRuntime }) => {
-    if (nextRuntime !== "nodejs") {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { IgnorePlugin } = require("webpack");
-      const ignoreNodes = new IgnorePlugin({ resourceRegExp: /node:.*/ });
-      config.plugins.push(ignoreNodes);
-    }
+  webpack: (config, { nextRuntime, isServer }) => {
+    if (nextRuntime !== "nodejs" && isServer)
+      config.plugins.push(...ignoredPlugins([/node:.*/, /fs/, /path/]));
     return config;
   },
+};
+
+const ignoredPlugins = (patterns: RegExp[]) => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { IgnorePlugin } = require("webpack");
+  return patterns.map(
+    (pattern) => new IgnorePlugin({ resourceRegExp: pattern }),
+  );
 };
 
 export default nextConfig;

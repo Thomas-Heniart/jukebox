@@ -7,11 +7,11 @@ import { CurrentTrackVM } from "@/jukebox-context/view-models/currentTrackVM";
 
 export const queuedTracks = async (): Promise<QueuedTrackVM[]> => {
   const userId = await getUserId();
-  return jukebox().queue(userId);
+  return (await jukebox()).queue(userId);
 };
 
 export const getCurrentTrack = async (): Promise<CurrentTrackVM | null> => {
-  return jukebox().currentTrackVM();
+  return (await jukebox()).currentTrackVM();
 };
 
 export const voteTrack = async ({
@@ -22,5 +22,5 @@ export const voteTrack = async ({
   vote: "UP" | "DOWN";
 }) => {
   const voterId = await getUserId();
-  jukebox().vote({ trackId, vote, voterId });
+  (await jukebox()).vote({ trackId, vote, voterId });
 };
