@@ -24,17 +24,20 @@ export default function Playlists() {
   };
 
   useEffect(() => {
-    retrievePlaylists().catch(console.error);
+    retrievePlaylists().then();
   }, []);
 
   const onClick =
     (playlist: PlaylistVM): MouseEventHandler<HTMLLIElement> =>
     (e) => {
       e.preventDefault();
-      selectPlaylist(playlist).catch((e) => {
-        console.error(e);
-        setPlaylists([]);
-      });
+      setIsLoading(true);
+      selectPlaylist(playlist)
+        .catch((e) => {
+          console.error(e);
+          setPlaylists([]);
+        })
+        .finally(() => setIsLoading(false));
     };
 
   if (isLoading)
@@ -49,7 +52,7 @@ export default function Playlists() {
       <AppContainer withHeader={false}>
         <h1 className={"font-extrabold text-2xl"}>No playlist available</h1>
         <h2 className={"font-bold text-xl"}>
-          Try to start playing a song on your device
+          Make sure you are playing a song on your device
         </h2>
         <button
           className={"rounded-2xl bg-blue-950 text-white p-2"}
@@ -63,7 +66,7 @@ export default function Playlists() {
   return (
     <AppContainer withHeader={false}>
       <h1 className={"font-extrabold text-2xl"}>
-        Select a playlist to start with
+        Choose a playlist to vote for your song
       </h1>
       <ol className={"grid grid-cols-1 gap-4"}>
         {playlists.map((playlist) => (

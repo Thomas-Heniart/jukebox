@@ -30,6 +30,15 @@ const nextConfig: NextConfig = {
       config.plugins.push(...ignoredPlugins([/node:.*/, /fs/, /path/]));
     return config;
   },
+  async redirects() {
+    return [
+      {
+        source: "/",
+        destination: "/tracks-queue",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 const ignoredPlugins = (patterns: RegExp[]) => {

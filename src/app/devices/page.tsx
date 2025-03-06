@@ -28,6 +28,7 @@ export default function Devices() {
     } catch (error) {
       console.error(error);
     } finally {
+      console.log("finally", { now: new Date().valueOf() });
       setIsLoading(false);
     }
   };
@@ -40,7 +41,11 @@ export default function Devices() {
     (deviceId: string, name: string): MouseEventHandler<HTMLLIElement> =>
     (e) => {
       e.preventDefault();
-      selectDevice(deviceId, name).catch(console.error);
+      setIsLoading(true);
+      selectDevice(deviceId, name).catch((e) => {
+        console.error(e);
+        setIsLoading(false);
+      });
     };
 
   if (isLoading)
@@ -55,7 +60,7 @@ export default function Devices() {
       <AppContainer withHeader={false}>
         <h1 className={"font-extrabold text-2xl"}>No device available</h1>
         <h2 className={"font-bold text-xl"}>
-          Try to start playing a song on your device
+          Make sure you are playing a song on your device
         </h2>
         <button
           className={"rounded-2xl bg-blue-950 text-white p-2"}

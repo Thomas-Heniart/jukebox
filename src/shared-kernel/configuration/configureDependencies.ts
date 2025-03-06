@@ -8,6 +8,7 @@ import {
   SqliteAccessTokenRepository,
 } from "@/jukebox-context/ports/accessTokenRepository";
 import { jukebox } from "@/shared-kernel/configuration/di";
+import { AdminStore } from "@/app/lib/adminStore";
 
 export const configureDependencies = async () => {
   const sqliteDb = await openSqliteConnexion();
@@ -38,6 +39,13 @@ export const configureDependencies = async () => {
         inject: ["sqliteDb"],
         factory: (sqliteDb: Database) =>
           new SqliteAccessTokenRepository(sqliteDb),
+      })
+      .register({
+        id: "adminStore",
+        factory: () =>
+          new AdminStore({
+            dreadhop: "dreadhop2025",
+          }),
       });
   await jukebox();
   console.log("Jukebox ready");

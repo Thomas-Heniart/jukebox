@@ -37,7 +37,7 @@ const CurrentTrackFooter = ({ track }: { track: CurrentTrackVM }) => {
   if (!track) return <></>;
 
   return (
-    <div className="fixed self-center w-full bottom-0 grid grid-cols-2 grid-rows-2 bg-gray-800 items-center">
+    <div className="fixed self-center justify-self-center w-full bottom-0 grid grid-cols-2 grid-rows-2 bg-gray-800 items-center">
       <Image
         className="row-span-2 justify-self-end p-2"
         src={track.imageUri}
@@ -149,9 +149,9 @@ export default function TracksQueue() {
   return (
     <AppContainer currentPage={"tracks-queue"}>
       <h1 className="font-bold text-2xl">Tracks Queue - vote for your song</h1>
-      <ol className="w-full">
+      <div className={"flex flex-col gap-2"}>
         {queue.map((track, i) => (
-          <li
+          <div
             key={`${i}-${track.id}`}
             className={
               "grid grid-cols-3 gap-4 items-center m-2 hover:bg-gray-600 transition-colors rounded w-full"
@@ -182,9 +182,45 @@ export default function TracksQueue() {
                 -
               </button>
             </div>
-          </li>
+          </div>
         ))}
-      </ol>
+      </div>
+      {/*<ol className="w-full">*/}
+      {/*  {queue.map((track, i) => (*/}
+      {/*    <li*/}
+      {/*      key={`${i}-${track.id}`}*/}
+      {/*      className={*/}
+      {/*        "grid grid-cols-3 gap-4 items-center m-2 hover:bg-gray-600 transition-colors rounded w-full"*/}
+      {/*      }*/}
+      {/*    >*/}
+      {/*      <Image*/}
+      {/*        src={track.imageUri}*/}
+      {/*        alt={track.title}*/}
+      {/*        width={100}*/}
+      {/*        height={100}*/}
+      {/*        className={"rounded"}*/}
+      {/*      />*/}
+      {/*      <span className={"align-self-center"}>*/}
+      {/*        {track.title} - {track.artist}*/}
+      {/*      </span>*/}
+      {/*      <div className={"flex flex-col items-center justify-center"}>*/}
+      {/*        <button*/}
+      {/*          onClick={onPlusClick(track, i)}*/}
+      {/*          className={plusButtonColor(track) + " hover:cursor-pointer"}*/}
+      {/*        >*/}
+      {/*          +*/}
+      {/*        </button>*/}
+      {/*        <span className={counterColor(track)}>{track.votes}</span>*/}
+      {/*        <button*/}
+      {/*          onClick={onMinusClick(track, i)}*/}
+      {/*          className={minusButtonColor(track) + " hover:cursor-pointer"}*/}
+      {/*        >*/}
+      {/*          -*/}
+      {/*        </button>*/}
+      {/*      </div>*/}
+      {/*    </li>*/}
+      {/*  ))}*/}
+      {/*</ol>*/}
       {currentTrack && <CurrentTrackFooter track={currentTrack} />}
     </AppContainer>
   );

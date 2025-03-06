@@ -48,8 +48,16 @@ export class TracksQueue {
     this._votes[trackId][voterId] = vote;
   }
 
-  addTrack({ id, title, artist, imageUri, duration }: TrackResultVM) {
+  addTrack(
+    { id, title, artist, imageUri, duration }: TrackResultVM,
+    voterId: string,
+  ) {
     this.tracks.push(new Track(id, title, artist, imageUri, 0, duration, 0));
+    this.vote({
+      trackId: id,
+      vote: "UP",
+      voterId,
+    });
   }
 
   setTracks(tracks: Track[]) {

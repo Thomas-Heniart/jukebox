@@ -135,24 +135,24 @@ export class SpotifyJukebox {
     }));
   }
 
-  async addTrackToQueue({
-    id,
-    title,
-    artist,
-    imageUri,
-    duration,
-  }: TrackResultVM): Promise<void> {
+  async addTrackToQueue(
+    { id, title, artist, imageUri, duration }: TrackResultVM,
+    voterId: string,
+  ): Promise<void> {
     await this.sdk!.playlists.addItemsToPlaylist(
       this.tracksQueue!.playlist.id,
       [`spotify:track:${id}`],
     );
-    this.tracksQueue!.addTrack({
-      id,
-      title,
-      artist,
-      imageUri,
-      duration,
-    });
+    this.tracksQueue!.addTrack(
+      {
+        id,
+        title,
+        artist,
+        imageUri,
+        duration,
+      },
+      voterId,
+    );
   }
 
   private async tracksOf(playlistId: string): Promise<Track[]> {
