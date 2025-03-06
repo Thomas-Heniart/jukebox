@@ -9,5 +9,5 @@ export const getDevices = async () => {
 
 export const selectDevice = async (id: string, name: string) => {
   (await jukebox()).chooseDevice({ id, name });
-  return redirect("/playlists");
+  return redirect("/dreadhop/playlists");
 };

@@ -48,6 +48,10 @@ export class TracksQueue {
     this._votes[trackId][voterId] = vote;
   }
 
+  hasTrack(id: string) {
+    return this.tracks.filter((t) => t.id === id).length > 0;
+  }
+
   addTrack(
     { id, title, artist, imageUri, duration }: TrackResultVM,
     voterId: string,

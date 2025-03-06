@@ -139,6 +139,12 @@ export class SpotifyJukebox {
     { id, title, artist, imageUri, duration }: TrackResultVM,
     voterId: string,
   ): Promise<void> {
+    if (this.tracksQueue!.hasTrack(id))
+      return this.tracksQueue!.vote({
+        trackId: id,
+        vote: "UP",
+        voterId,
+      });
     await this.sdk!.playlists.addItemsToPlaylist(
       this.tracksQueue!.playlist.id,
       [`spotify:track:${id}`],

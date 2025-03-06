@@ -36,7 +36,7 @@ export async function GET(request: Request) {
     (await jukebox()).clearRefreshTokenTimeout();
     await (await jukebox()).authenticateWith(response.data);
 
-    return redirectTo("/devices", request);
+    return redirectTo("/dreadhop/devices", request);
   } catch (error) {
     console.error(error);
     return NextResponse.json(

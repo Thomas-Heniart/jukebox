@@ -1,10 +1,10 @@
-"use client";
 import React, { MouseEventHandler, useEffect, useState } from "react";
-import { getDevices, selectDevice } from "@/app/devices/actions";
-import AppContainer from "@/app/layouts/appContainer";
 import { DeviceVM } from "@/jukebox-context/view-models/deviceVM";
-import Image from "next/image";
+import { getDevices, selectDevice } from "@/app/dreadhop/devices/actions";
+import { isLoggedInToClient } from "@/app/dreadhop/actions";
+import AppContainer from "@/app/layouts/appContainer";
 import { Loader } from "@/app/components/loader";
+import Image from "next/image";
 
 const paths: Record<string, string> = {
   Smartphone: "/smartphone.png",
@@ -16,9 +16,10 @@ const deviceImage = (type: DeviceVM["type"]) => {
   return <Image src={path} alt={type} width={98} height={98} />;
 };
 
-export default function Devices() {
+export const AdminDevices = ({ clientId }: { clientId: string }) => {
   const [devices, setDevices] = useState<DeviceVM[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const retrieveDevices = async () => {
     setIsLoading(true);
@@ -28,14 +29,25 @@ export default function Devices() {
     } catch (error) {
       console.error(error);
     } finally {
-      console.log("finally", { now: new Date().valueOf() });
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    retrieveDevices().catch(console.error);
-  }, []);
+    isLoggedInToClient(clientId)
+      .then((result) => {
+        setIsLoggedIn(result);
+        if (result)
+          retrieveDevices()
+            .catch(console.error)
+            .finally(() => setIsLoading(false));
+        else setIsLoading(false);
+      })
+      .catch((e) => {
+        console.error(e);
+        setIsLoading(false);
+      });
+  }, [clientId]);
 
   const onClick =
     (deviceId: string, name: string): MouseEventHandler<HTMLLIElement> =>
@@ -52,6 +64,14 @@ export default function Devices() {
     return (
       <AppContainer withHeader={false}>
         <Loader />
+      </AppContainer>
+    );
+
+  if (!isLoggedIn)
+    return (
+      <AppContainer withHeader={false}>
+        <h1 className={"font-extrabold text-2xl"}>Not logged in</h1>
+        <h2 className={"font-bold text-xl"}>Please log in to continue</h2>
       </AppContainer>
     );
 
@@ -90,4 +110,4 @@ export default function Devices() {
       </ol>
     </AppContainer>
   );
-}
+};

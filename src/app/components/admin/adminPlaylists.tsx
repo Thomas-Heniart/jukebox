@@ -1,15 +1,15 @@
-"use client";
-
 import React, { MouseEventHandler, useEffect, useState } from "react";
-import AppContainer from "@/app/layouts/appContainer";
-import Image from "next/image";
-import { getPlaylists, selectPlaylist } from "@/app/playlists/actions";
 import { PlaylistVM } from "@/jukebox-context/view-models/playlistVM";
+import { getPlaylists, selectPlaylist } from "@/app/dreadhop/playlists/actions";
+import { isLoggedInToClient } from "@/app/dreadhop/actions";
+import AppContainer from "@/app/layouts/appContainer";
 import { Loader } from "@/app/components/loader";
+import Image from "next/image";
 
-export default function Playlists() {
+export const AdminPlaylists = ({ clientId }: { clientId: string }) => {
   const [playlists, setPlaylists] = useState<PlaylistVM[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const retrievePlaylists = async () => {
     setIsLoading(true);
@@ -24,8 +24,20 @@ export default function Playlists() {
   };
 
   useEffect(() => {
-    retrievePlaylists().then();
-  }, []);
+    isLoggedInToClient(clientId)
+      .then((result) => {
+        setIsLoggedIn(result);
+        if (result)
+          retrievePlaylists()
+            .catch(console.error)
+            .finally(() => setIsLoading(false));
+        else setIsLoading(false);
+      })
+      .catch((e) => {
+        console.error(e);
+        setIsLoading(false);
+      });
+  }, [clientId]);
 
   const onClick =
     (playlist: PlaylistVM): MouseEventHandler<HTMLLIElement> =>
@@ -44,6 +56,14 @@ export default function Playlists() {
     return (
       <AppContainer withHeader={false}>
         <Loader />
+      </AppContainer>
+    );
+
+  if (!isLoggedIn)
+    return (
+      <AppContainer withHeader={false}>
+        <h1 className={"font-extrabold text-2xl"}>Not logged in</h1>
+        <h2 className={"font-bold text-xl"}>Please log in to continue</h2>
       </AppContainer>
     );
 
@@ -90,4 +110,4 @@ export default function Playlists() {
       </ol>
     </AppContainer>
   );
-}
+};
