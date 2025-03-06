@@ -62,17 +62,31 @@ export class SpotifyJukebox {
   }
 
   async availablePlaylists(): Promise<Array<PlaylistVM>> {
+    const result = [];
     const userId = (await this.sdk!.currentUser.profile()).id;
-    //@TODO handle pagination
-    const page = await this.sdk!.playlists.getUsersPlaylists(userId);
-    return page.items.map((item) => ({
-      id: item.id,
-      name: item.name,
-      coverUri:
-        item.images && item.images.length
-          ? item.images[0].url
-          : "/playlist-placeholder.png",
-    }));
+    let total = 0;
+    let offset = 0;
+    const limit = 50;
+    do {
+      const page = await this.sdk!.playlists.getUsersPlaylists(
+        userId,
+        limit,
+        offset,
+      );
+      total = page.total;
+      offset = page.offset + page.limit;
+      result.push(
+        ...page.items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          coverUri:
+            item.images && item.images.length
+              ? item.images[0].url
+              : "/playlist-placeholder.png",
+        })),
+      );
+    } while (result.length < total);
+    return result;
   }
 
   async startPlaylist(playlist: PlaylistVM): Promise<void> {
@@ -162,20 +176,36 @@ export class SpotifyJukebox {
   }
 
   private async tracksOf(playlistId: string): Promise<Track[]> {
-    //@TODO handle pagination
-    const page = await this.sdk!.playlists.getPlaylistItems(playlistId);
-    return page.items.map(
-      (item) =>
-        new Track(
-          item.track.id,
-          item.track.name,
-          joinArtists(item.track.artists),
-          item.track.album.images[0].url,
-          0,
-          item.track.duration_ms,
-          this.trackRepository.lastPlayed(item.track.id),
+    const tracks = [];
+    let total = 0;
+    let offset = 0;
+    const limit = 50;
+    do {
+      const page = await this.sdk!.playlists.getPlaylistItems(
+        playlistId,
+        "BB",
+        undefined,
+        limit,
+        offset,
+      );
+      total = page.total;
+      offset = page.offset + page.limit;
+      tracks.push(
+        ...page.items.map(
+          (item) =>
+            new Track(
+              item.track.id,
+              item.track.name,
+              joinArtists(item.track.artists),
+              item.track.album.images[0].url,
+              0,
+              item.track.duration_ms,
+              this.trackRepository.lastPlayed(item.track.id),
+            ),
         ),
-    );
+      );
+    } while (tracks.length < total);
+    return tracks;
   }
 
   private startRefreshQueueInterval() {
